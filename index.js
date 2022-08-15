@@ -123,14 +123,16 @@ app.post('/providersLogin', (req, res) => {
 
 app.post('/providersRegister', (req, res) => {
     const cname = req.body.company_name;
-    const contact_no = req.body.last_name;
+    const description = req.body.description;
     const phone = req.body.phone;
     const email = req.body.email;
     const password = req.body.password;
     const address = req.body.address;
     const pincode = req.body.pincode;
-    sql.query('INSERT INTO customer (first_name, last_name, phone, email, password, address, pincode) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [fname, lname, phone, email, password, address, pincode], (err, rows) => {
+    const access_km = req.body.access_km;
+    const category_id = req.body.category_id;
+    sql.query('INSERT INTO  providers (company_name, contact_no, email, password, address, description, pincode, access_km, category_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [cname, phone, email, password, address, description, pincode, access_km, category_id], (err, rows) => {
             if (!err) {
                 res.setHeader('Content-Type', 'application/json');
                 res.status(200).send(JSON.stringify(
