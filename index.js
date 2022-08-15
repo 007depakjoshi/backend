@@ -224,6 +224,36 @@ app.get('/providerDetail/:id', async (req, res) => {
     })
 })
 
+app.get('/providerservice/:id', (req, res) => {
+    
+    var squery = 'Select * from provider_service as ps INNER JOIN service AS s ON s.service_id = ps.service_id WHERE ps.provider_id =' + req.params.id;
+    sql.query(squery, (err, rows) => {
+        if (!err) {
+            if (rows.length > 0) {
+                res.setHeader('Content-Type', 'application/json');
+                res.status(200).send(JSON.stringify(
+                    {
+                        'status': 200,
+                        'result': 'Search Successful',
+                        'data': rows
+                    })
+                );
+            } else {
+                res.setHeader('Content-Type', 'application/json');
+                res.status(400).send(JSON.stringify(
+                    {
+                        'status': 400,
+                        'result': 'No Result Found',
+                        'data': ''
+                    })
+                );
+            }
+        } else {
+            res.status(400).send(err);
+        }
+    })
+})
+
 app.post('/book', (req, res) => {
     let ts = Date.now();
 
@@ -240,8 +270,13 @@ let full_date = year + "-" + month + "-" + date
     const comment = req.body.comment;
     const customer = req.body.customer;
     const address = req.body.address;
-    sql.query('INSERT INTO booking (customer_id, provider_service_id, comment, app_date, app_time, datetime, status, book_address) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-    [customer, service, comment, app_date, app_time, full_date,'P', address], (err, rows) => {
+    var record = [];
+    service.map((item) => 
+        record.push([customer, item, comment, app_date, app_time, full_date,'P', address])
+        );
+        console.log('record',record)
+    sql.query('INSERT INTO booking (customer_id, provider_service_id, comment, app_date, app_time, datetime, status, book_address) VALUES ?',
+    [record] , (err, rows) => {
         if (!err) {
             res.setHeader('Content-Type', 'application/json');
             res.status(200).send(JSON.stringify(
@@ -258,7 +293,57 @@ let full_date = year + "-" + month + "-" + date
 })
 
 app.get('/bookinglist/:id', (req, res) => {
-    var squery = 'SELECT * FROM `booking` as b INNER JOIN provider_service AS ps ON ps.provider_service_id = b.provider_service_id INNER JOIN service AS s ON s.service_id = ps.service_id WHERE ps.provider_id ='+ req.params.id;
+    var squery = 'SELECT * FROM `booking` as b INNER JOIN customer AS cs ON cs.customer_id = b.customer_id INNER JOIN provider_service AS ps ON ps.provider_service_id = b.provider_service_id INNER JOIN service AS s ON s.service_id = ps.service_id WHERE ps.provider_id ='+ req.params.id;
+    console.log('query', squery)
+
+    sql.query(squery, (err, rows) => {
+        if (!err) {
+            if (rows.length > 0) {
+                res.setHeader('Content-Type', 'application/json');
+                res.status(200).send(JSON.stringify(
+                    {
+                        'status': 200,
+                        'result': 'Search Successful',
+                        'data': rows
+                    })
+                );
+            } else {
+                res.setHeader('Content-Type', 'application/json');
+                res.status(400).send(JSON.stringify(
+                    {
+                        'status': 400,
+                        'result': 'No Result Found',
+                        'data': ''
+                    })
+                );
+            }
+        } else {
+            res.status(400).send(err);
+        }
+    })
+})
+
+app.post('/statusupdate', (req, res) => {
+    const status = req.body.status;
+    const booking_id = req.body.booking;
+    sql.query('UPDATE booking SET status = "'+ status +'" WHERE booking_id  ='+ booking_id ,(err, rows) => {
+        if (!err) {
+            res.setHeader('Content-Type', 'application/json');
+            res.status(200).send(JSON.stringify(
+                {
+                    'status': 200,
+                    'result': 'Information Saved Successfully',
+                    'data': rows[0]
+                })
+            );
+        } else {
+            res.status(400).send(err);
+        }
+    })
+})
+
+app.get('/customerbooking/:id', (req, res) => {
+    var squery = 'SELECT * FROM `booking` as b INNER JOIN provider_service AS ps ON ps.provider_service_id = b.provider_service_id INNER JOIN service AS s ON s.service_id = ps.service_id WHERE b.customer_id ='+ req.params.id;
     console.log('query', squery)
 
     sql.query(squery, (err, rows) => {
